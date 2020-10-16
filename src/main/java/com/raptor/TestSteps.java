@@ -1,5 +1,6 @@
 package com.raptor;
 
+import com.raptor.util.Utililty;
 import net.minidev.json.JSONObject;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedCondition;
@@ -11,24 +12,29 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.raptor.TestExecution.browser;
-import static com.raptor.util.Utililty.getDecodedValue;
-import static com.raptor.util.Utililty.getEnvironmentProperties;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+@Service
 public class TestSteps {
+
+    Utililty utililty;
     public static String code = "";
+    public  WebDriver browser;
     private static String authorise_mobile = "MOBILE";
     private static String codeIdentifierId ="";
     private static String profile ="";
-    private static Logger logger = LogManager.getLogger(TestSteps.class.getName());
-    private static String defaultTime = getEnvironmentProperties("app.defaultActionTime");
-    private static String defaultTimeOut = getEnvironmentProperties("app.defaultTimeOut");
+    private Logger logger = LogManager.getLogger(TestSteps.class.getName());
+    private String defaultTime;
+    private String defaultTimeOut;
 
+    public TestSteps() {
+        utililty = new Utililty();
+    }
     //wait for element to be present
-    public static WebElement waitForElement(JavascriptExecutor js, String locator) throws InterruptedException {
+    public WebElement waitForElement(JavascriptExecutor js, String locator) throws InterruptedException {
 
         Wait<WebDriver> wait = new FluentWait<>(browser)
                 .withTimeout(Duration.ofSeconds(Integer.parseInt(defaultTimeOut)))
@@ -41,7 +47,7 @@ public class TestSteps {
     }
 
     //wait for element to be present
-    public static List<WebElement> waitForElements(JavascriptExecutor js, String locator) throws InterruptedException {
+    public List<WebElement> waitForElements(JavascriptExecutor js, String locator) throws InterruptedException {
 
         Wait<WebDriver> wait = new FluentWait<>(browser)
                 .withTimeout(Duration.ofSeconds(Integer.parseInt(defaultTimeOut)))
@@ -54,13 +60,13 @@ public class TestSteps {
     }
 
     // click step
-    public static void clickStep(JavascriptExecutor js, String locator, String time, String optionalLocator , String optionalStep, WebDriverWait wait) throws InterruptedException {
+    public void clickStep(JavascriptExecutor js, String locator, String time, String optionalLocator , String optionalStep, WebDriverWait wait) throws InterruptedException {
         logger.info("locator from script: : " + locator);
-        logger.info("locator from property: : " + getEnvironmentProperties(locator));
+        logger.info("locator from property: : " + utililty.getEnvironmentProperties(locator));
         time = time !=null ? time: defaultTime;
         Thread.sleep(Long.parseLong(time));
-        String locatorValue = getEnvironmentProperties(locator);
-        String optionalLocatorValue = getEnvironmentProperties(optionalLocator);
+        String locatorValue = utililty.getEnvironmentProperties(locator);
+        String optionalLocatorValue = utililty.getEnvironmentProperties(optionalLocator);
         WebElement webElement = null;
         Boolean isDisabled = false;
         try {
@@ -69,7 +75,7 @@ public class TestSteps {
             logger.info("first element found: : " + webElement);
 
             if(webElement == null || isDisabled){
-                logger.info("optional locator from property: : " + getEnvironmentProperties(optionalLocatorValue));
+                logger.info("optional locator from property: : " + utililty.getEnvironmentProperties(optionalLocatorValue));
                 webElement = webElement = waitForElement(js, optionalLocatorValue);
                 isDisabled = (Boolean) js.executeScript("return arguments[0].hasAttribute(\"disabled\");", webElement);
                 logger.info("optional element found: : " + webElement);
@@ -87,17 +93,17 @@ public class TestSteps {
                 js.executeScript("arguments[0].click();", webElement);
             }
         } catch(TimeoutException | JavascriptException | NullPointerException ex){
-            logger.info("Unable to find element: " + getEnvironmentProperties(locator) + "or" + getEnvironmentProperties(optionalLocatorValue));
+            logger.info("Unable to find element: " + utililty.getEnvironmentProperties(locator) + "or" + utililty.getEnvironmentProperties(optionalLocatorValue));
             throw ex;
         }
     }
 
     // click step by looking for matching text
-    public static void clickStepByText(JavascriptExecutor js, String locator, String time, String textToFind) throws InterruptedException {
+    public void clickStepByText(JavascriptExecutor js, String locator, String time, String textToFind) throws InterruptedException {
         //provide list of elements wherein we can find the right element with given text and click
         time = time !=null ? time: defaultTime;
         Thread.sleep(Long.parseLong(time));
-        String locatorValue = getEnvironmentProperties(locator);
+        String locatorValue = utililty.getEnvironmentProperties(locator);
         List<WebElement> webElements = waitForElements(js, locatorValue);
         WebElement elementFound = null;
         if(webElements != null){
@@ -120,9 +126,9 @@ public class TestSteps {
     }
 
     //input step
-    public static void inputStep(JavascriptExecutor js, String locator, String time, String inputValue)throws InterruptedException
+    public void inputStep(JavascriptExecutor js, String locator, String time, String inputValue)throws InterruptedException
     {
-        String locatorValue = getEnvironmentProperties(locator);
+        String locatorValue = utililty.getEnvironmentProperties(locator);
         time = time !=null ? time: defaultTime;
         Thread.sleep(Long.parseLong(time));
         inputValue = "'" + inputValue + "'";
@@ -137,21 +143,21 @@ public class TestSteps {
             js.executeScript("arguments[0].dirty=false;return true", webElement);
             js.executeScript("arguments[0].blur(); return true", webElement);
         } catch(TimeoutException | JavascriptException | NullPointerException ex){
-            logger.info("Unable to find element: " + getEnvironmentProperties(locator));
+            logger.info("Unable to find element: " + utililty.getEnvironmentProperties(locator));
             throw ex;
         }
 
     }
 
     //input step by sending keys
-    public static void inputBySendingKeysStep(JavascriptExecutor js, String locator, String time, String inputValue, String type)throws InterruptedException
+    public void inputBySendingKeysStep(JavascriptExecutor js, String locator, String time, String inputValue, String type)throws InterruptedException
     {
         time = time !=null ? time: defaultTime;
         Thread.sleep(Long.parseLong(time));
         if(("PASSWORD").equals(type)) {
-            inputValue = getDecodedValue(inputValue);
+            inputValue = utililty.getDecodedValue(inputValue);
         }
-        String locatorValue = getEnvironmentProperties(locator);
+        String locatorValue = utililty.getEnvironmentProperties(locator);
         try {
             WebElement webElement = waitForElement(js, locatorValue);
             webElement.sendKeys(inputValue);
@@ -164,51 +170,51 @@ public class TestSteps {
             js.executeScript("arguments[0].dispatchEvent(new Event('change'));return true;", webElement);
             webElement.sendKeys(Keys.TAB);
         } catch(TimeoutException | JavascriptException | NullPointerException ex){
-            logger.info("Unable to find element: " + getEnvironmentProperties(locator));
+            logger.info("Unable to find element: " + utililty.getEnvironmentProperties(locator));
             throw ex;
         }
 
     }
 
     //expect step
-    public static void expectStep(JavascriptExecutor js, String locator, String time, String expectedText, WebDriverWait wait) throws InterruptedException, NoSuchFieldException {
+    public void expectStep(JavascriptExecutor js, String locator, String time, String expectedText, WebDriverWait wait) throws InterruptedException, NoSuchFieldException {
         time = time !=null ? time: defaultTime;
         Thread.sleep(Long.parseLong(time));
-        String locatorValue = getEnvironmentProperties(locator);
+        String locatorValue = utililty.getEnvironmentProperties(locator);
         WebElement webElement = waitForElement(js, locatorValue);
         wait.until((ExpectedCondition<Boolean>) js1 -> (webElement).getText().trim().contains(expectedText.trim()));
     }
 
     //wait step
-    public static void waitStep(String time) throws InterruptedException {
+    public void waitStep(String time) throws InterruptedException {
         time = time !=null ? time: defaultTime;
         Thread.sleep(Long.parseLong(time));
     }
 
     //scroll down
-    public static void scroll(JavascriptExecutor js,String height, String time) throws InterruptedException {
+    public void scroll(JavascriptExecutor js,String height, String time) throws InterruptedException {
         time = time !=null ? time: defaultTime;
         Thread.sleep(Long.parseLong(time));
         js.executeScript("window.scrollBy(0," + Integer.parseInt(height) + ")");
     }
 
     //navigate step
-    public static void navigateStep(JavascriptExecutor js, String url, String time) throws InterruptedException {
+    public void navigateStep(JavascriptExecutor js, String url, String time) throws InterruptedException {
         time = time !=null ? time: defaultTime;
         Thread.sleep(Long.parseLong(time));
-        url = getEnvironmentProperties(url);
+        url = utililty.getEnvironmentProperties(url);
         url = "'" + url + "'";
         js.executeScript("window.location = " + url);
 
     }
 
-    public static void authorise(JavascriptExecutor js,JSONObject scriptObject) throws InterruptedException, IOException {
+    public void authorise(JavascriptExecutor js,JSONObject scriptObject) throws InterruptedException, IOException {
         String timeLapsed = scriptObject.getAsString("time");
         timeLapsed = timeLapsed !=null ? timeLapsed: defaultTime;
-        String url = getEnvironmentProperties(scriptObject.getAsString("url"));
+        String url = utililty.getEnvironmentProperties(scriptObject.getAsString("url"));
         Long time = Long.parseLong(timeLapsed) != 0 ? Long.parseLong(timeLapsed): 1500;
         String type = scriptObject.getAsString("type");
-        String locator = getEnvironmentProperties(scriptObject.getAsString("locator"));
+        String locator = utililty.getEnvironmentProperties(scriptObject.getAsString("locator"));
 
 
         url = "'" + url + "'";
@@ -219,10 +225,10 @@ public class TestSteps {
         browser.switchTo().window(tabs.get(1));
         if(authorise_mobile.equalsIgnoreCase(type)) {
             String accessProfile = scriptObject.getAsString("value");
-            String mobileInputLocator = getEnvironmentProperties("mobile.input");
-            String mobileSubmitLocator = getEnvironmentProperties("mobile.submit");
-            String mobileApproveLocator = getEnvironmentProperties("mobile.approve");
-            String mobileRejectLocator = getEnvironmentProperties("mobile.reject");
+            String mobileInputLocator = utililty.getEnvironmentProperties("mobile.input");
+            String mobileSubmitLocator = utililty.getEnvironmentProperties("mobile.submit");
+            String mobileApproveLocator = utililty.getEnvironmentProperties("mobile.approve");
+            String mobileRejectLocator = utililty.getEnvironmentProperties("mobile.reject");
             if(accessProfile == null || accessProfile.length() == 0) {
                 accessProfile = profile;
             }
@@ -236,9 +242,9 @@ public class TestSteps {
             browser.switchTo().window(tabs.get(0));
             Thread.sleep(time*2);
         } else {
-            String codeInputAumaLocator = getEnvironmentProperties("code.input");
-            String codeSubmitLocator= getEnvironmentProperties("code.submit");
-            String codeValueLocator =  getEnvironmentProperties("code.codeValue"+type);
+            String codeInputAumaLocator = utililty.getEnvironmentProperties("code.input");
+            String codeSubmitLocator= utililty.getEnvironmentProperties("code.submit");
+            String codeValueLocator =  utililty.getEnvironmentProperties("code.codeValue"+type);
             String codeIdentifier = scriptObject.getAsString("value");
             if(codeIdentifier == null || codeIdentifier.length() == 0) {
                 codeIdentifier = codeIdentifierId;
@@ -260,8 +266,11 @@ public class TestSteps {
     }
 
     //execute test based on action
-    public static void executeTestBasedOnAction(JavascriptExecutor js, JSONObject scriptObject, WebDriverWait wait) {
+    public void executeTestBasedOnAction(JavascriptExecutor js, WebDriver browser, JSONObject scriptObject, WebDriverWait wait) {
         try{
+            defaultTime = utililty.getEnvironmentProperties("app.defaultActionTime");
+            defaultTimeOut = utililty.getEnvironmentProperties("app.defaultTimeOut");
+            this.browser = browser;
             logger.info("Script step : " + scriptObject.toString());
             switch(scriptObject.getAsString("action")) {
                 case "navigate":
