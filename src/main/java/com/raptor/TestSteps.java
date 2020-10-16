@@ -260,9 +260,6 @@ public class TestSteps {
             inputBySendingKeysStep(js, locator, time.toString(), code, null);
         }
 
-
-
-
     }
 
     //execute test based on action
