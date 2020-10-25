@@ -13,12 +13,12 @@
     {
       "stepName": "click Cari Dokter",
       "action": "click",
-      "locator": "document.querySelector(\"#content > hero-view\").shadowRoot.querySelector(\"div > div.sub-menu > div > div > div:nth-child(2) > a\")"
+      "locator": "anchorLocator"
     },
     {
       "stepName": "click mri scan",
       "action": "click",
-      "locator": "document.querySelector(\"#container > div.parent > div.div2 > card-hospital-index\").shadowRoot.querySelector(\"div > div.card-hospital-index > div > card-sticky-hospital:nth-child(1)\").shadowRoot.querySelector(\"div > div > div.hospital-index-procedure > div > p:nth-child(2) > a\")"
+      "locator": "mriScan"
     },
     {
       "stepName": "click Doktor",
