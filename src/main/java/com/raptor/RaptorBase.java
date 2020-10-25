@@ -19,8 +19,9 @@ import java.net.MalformedURLException;
  * @since   2020-03-25
  */
 
-@TestPropertySource(locations="classpath:application-test.properties")
-@PropertySource(value = "classpath:application.properties",ignoreResourceNotFound = true)
+@TestPropertySource(locations={"classpath:application-test.properties","classpath:application-locator.properties"})
+@PropertySource(value = "classpath:application-test.properties",ignoreResourceNotFound = true)
+@PropertySource(value = "classpath:application-locator.properties",ignoreResourceNotFound = true)
 public abstract class RaptorBase {
 
     @Autowired
