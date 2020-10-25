@@ -28,6 +28,7 @@ import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.aventstack.extentreports.ExtentReports;
@@ -45,37 +46,53 @@ import java.util.logging.Level;
 
 @Service
 public class TestExecution {
-    //builds a new report using the html template
-    public static ExtentHtmlReporter htmlReporter;
 
-    public static ExtentReports extent;
+    public TestSteps testSteps;
+
+    Utililty utililty;
+
+    //builds a new report using the html template
+    public ExtentHtmlReporter htmlReporter;
+
+    public ExtentReports extent;
     //helps to generate the logs in test report.
-    public static ExtentTest test;
-    public static WebDriver browser;
-    public static ChromeOptions chromeOptions = new ChromeOptions();
+    public ExtentTest test;
+    public  WebDriver browser;
+    public  ChromeOptions chromeOptions = new ChromeOptions();
     public String operatingSystem = "";
     public String browserType = "";
-    private static JsonTestCase testScript = null;
+    private JsonTestCase testScript = null;
 
-    public static WebDriver createBrowser(String jsonPath) throws MalformedURLException {
-        String fullJsonPath = Utililty.getEnvironmentProperties("app.relativeTestscriptPath") + jsonPath;
-        testScript = ReadJsonTestScripts.readTestScript(fullJsonPath);
-    	String browserType =StringUtils.isEmpty(testScript.getTestCaseConfig().getBrowser())?"Chrome":testScript.getTestCaseConfig().getBrowser();
-        extent.setSystemInfo("Browser", browserType + " - " + testScript.getTestCaseConfig().getTestName());
-    	Boolean proxyRequired = testScript.getTestCaseConfig().getProxy();
-    	return createBrowserOption(browserType, proxyRequired);
+    public TestExecution() {
+        utililty = new Utililty();
+        testSteps = new TestSteps();
     }
 
-    public static WebDriver createBrowserOption(String browserType, Boolean proxyRequired) throws MalformedURLException {
-        Boolean isGridDisabled = Boolean.parseBoolean(Utililty.getEnvironmentProperties("app.isGridDisabled"));
-        String baseUrl = Utililty.getEnvironmentProperties("app.baseUrl");
-        String proxyUrl = Utililty.getEnvironmentProperties("app.proxyUrl");
-        String nodeUrl = Utililty.getEnvironmentProperties("app.gridNodeurl");
+
+
+    public WebDriver createBrowser(String jsonPath) throws MalformedURLException {
+        try {
+            String fullJsonPath = utililty.getEnvironmentProperties("app.relativeTestscriptPath") + jsonPath;
+            testScript = ReadJsonTestScripts.readTestScript(fullJsonPath);
+            String browserType = StringUtils.isEmpty(testScript.getTestCaseConfig().getBrowser()) ? "Chrome" : testScript.getTestCaseConfig().getBrowser();
+            extent.setSystemInfo("Browser", browserType + " - " + testScript.getTestCaseConfig().getTestName());
+            Boolean proxyRequired = testScript.getTestCaseConfig().getProxy();
+            return createBrowserOption(browserType, proxyRequired);
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    public WebDriver createBrowserOption(String browserType, Boolean proxyRequired) throws MalformedURLException {
+        Boolean isGridDisabled = Boolean.parseBoolean(utililty.getEnvironmentProperties("app.isGridDisabled"));
+        String baseUrl = utililty.getEnvironmentProperties("app.baseUrl");
+        String proxyUrl = utililty.getEnvironmentProperties("app.proxyUrl");
+        String nodeUrl = utililty.getEnvironmentProperties("app.gridNodeurl");
 
         if(isGridDisabled) {
             switch (browserType.toLowerCase()) {
                 case "chrome":
-                    String chromePathLocal = Utililty.getEnvironmentProperties("chromeDriverPath");
+                    String chromePathLocal = utililty.getEnvironmentProperties("chromeDriverPath");
                     if(chromePathLocal != null && !chromePathLocal.isEmpty() ) {
                         System.setProperty("webdriver.chrome.driver",
                                 System.getProperty("user.dir") + "//" + chromePathLocal);
@@ -103,7 +120,7 @@ public class TestExecution {
                     browser.get(baseUrl);
                     break;
                 case "edge":
-                    String edgePathLocal = Utililty.getEnvironmentProperties("edgeDriverPath");
+                    String edgePathLocal = utililty.getEnvironmentProperties("edgeDriverPath");
                     if(edgePathLocal != null && !edgePathLocal.isEmpty() ) {
                         System.setProperty("webdriver.chrome.driver",
                                 System.getProperty("user.dir") + "//" + edgePathLocal);
@@ -119,7 +136,7 @@ public class TestExecution {
                     //browser.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
                     break;
                 case "ie":
-                    String isPathLocal = Utililty.getEnvironmentProperties("ieDriverPath");
+                    String isPathLocal = utililty.getEnvironmentProperties("ieDriverPath");
                     if(isPathLocal != null && !isPathLocal.isEmpty() ) {
                         System.setProperty("webdriver.chrome.driver",
                                 System.getProperty("user.dir") + "//" + isPathLocal);
@@ -229,7 +246,7 @@ public class TestExecution {
 
     }
 
-    public static String createFailureScreenShots(String fileName , String relativescriptfailureScreenPath) throws IOException {
+    public String createFailureScreenShots(String fileName , String relativescriptfailureScreenPath) throws IOException {
         String dateTime = new Date().toString();
         File scrFile = ((TakesScreenshot)browser).getScreenshotAs(OutputType.FILE);
         String file64Data = ((TakesScreenshot)browser).getScreenshotAs(OutputType.BASE64);
@@ -242,23 +259,23 @@ public class TestExecution {
         return "data:image/jpg;base64, " + file64Data ;
     }
 
-    public static void quietBrowser(WebDriver browser) {
+    public void quietBrowser(WebDriver browser) {
         extent.flush();
         browser.close();
         browser.quit();
     }
-    public static void ExtractJSLogs() {
+    public void ExtractJSLogs() {
         LogEntries logEntries = browser.manage().logs().get(LogType.BROWSER);
         for (LogEntry entry : logEntries) {
-            test.log(Status.FAIL, MarkupHelper.createLabel(new Date(entry.getTimestamp()) + " " + entry.getLevel() + " " + entry.getMessage()+" FAILED ", ExtentColor.valueOf(Utililty.getEnvironmentProperties("logColor"))));
+            test.log(Status.FAIL, MarkupHelper.createLabel(new Date(entry.getTimestamp()) + " " + entry.getLevel() + " " + entry.getMessage()+" FAILED ", ExtentColor.valueOf(utililty.getEnvironmentProperties("logColor"))));
             System.out.println(new Date(entry.getTimestamp()) + " " + entry.getLevel() + " " + entry.getMessage());
         }
     }
-    public static void closeReporting() {
+    public  void closeReporting() {
         extent.flush();
     }
 
-    public static void initiateReporting(String name) {
+    public void initiateReporting(String name) {
         name = StringUtils.isEmpty(name) ? "Raptor": name;
         htmlReporter = new ExtentHtmlReporter(System.getProperty("user.dir") +"/test-output/"+name+"-Report.html");
         //initialize ExtentReports and attach the HtmlReporter
@@ -279,7 +296,7 @@ public class TestExecution {
     }
 
 
-    public static void runScript(String jsonPath, String testName) throws IOException {
+    public void runScript(String jsonPath, String testName) throws IOException {
         if(browser == null) {
             browser = createBrowser(jsonPath);
         }
@@ -289,22 +306,22 @@ public class TestExecution {
         try {
         displayTestName = StringUtils.isEmpty(testScript.getTestCaseConfig().getTestName()) ?  testName : testScript.getTestCaseConfig().getTestName();
         test = extent.createTest(displayTestName, "");
-        WebDriverWait wait = new WebDriverWait(browser, Integer.parseInt(Utililty.getEnvironmentProperties("app.defaultTimeOut")));
+        WebDriverWait wait = new WebDriverWait(browser, Integer.parseInt(utililty.getEnvironmentProperties("app.defaultTimeOut")));
             JavascriptExecutor js = (JavascriptExecutor)browser;
 //			// loop through all the setps from the json test script
             testScript.getTestSteps().forEach( script -> {
                 JSONObject scriptObject = (JSONObject) script;
                 stepName.set(scriptObject.getAsString("step") != null ? scriptObject.getAsString("step") : scriptObject.getAsString("stepName"));
-                TestSteps.executeTestBasedOnAction(js , scriptObject, wait);
-                test.log(Status.INFO, MarkupHelper.createLabel(stepName +" --passed ", ExtentColor.valueOf(Utililty.getEnvironmentProperties("passStepColor"))));
+                testSteps.executeTestBasedOnAction(js ,browser, scriptObject, wait);
+                test.log(Status.INFO, MarkupHelper.createLabel(stepName +" --passed ", ExtentColor.valueOf(utililty.getEnvironmentProperties("passStepColor"))));
             } );
-            test.log(Status.PASS, MarkupHelper.createLabel(displayTestName+" --SUCCESS ", ExtentColor.valueOf(Utililty.getEnvironmentProperties("passTestColor"))));
+            test.log(Status.PASS, MarkupHelper.createLabel(displayTestName+" --SUCCESS ", ExtentColor.valueOf(utililty.getEnvironmentProperties("passTestColor"))));
 
         } catch (Exception e) {
-            test.log(Status.INFO, MarkupHelper.createLabel(stepName +" --failed ", ExtentColor.valueOf(Utililty.getEnvironmentProperties("failStepColor"))));
-            test.log(Status.FAIL, MarkupHelper.createLabel(displayTestName+" --FAILED ", ExtentColor.valueOf(Utililty.getEnvironmentProperties("failTestColor"))));
+            test.log(Status.INFO, MarkupHelper.createLabel(stepName +" --failed ", ExtentColor.valueOf(utililty.getEnvironmentProperties("failStepColor"))));
+            test.log(Status.FAIL, MarkupHelper.createLabel(displayTestName+" --FAILED ", ExtentColor.valueOf(utililty.getEnvironmentProperties("failTestColor"))));
             ExtractJSLogs();
-            test.log(Status.FAIL, "Error Snapshot : " + test.addScreenCaptureFromBase64String(createFailureScreenShots(testName, Utililty.getEnvironmentProperties("app.relativescriptfailureScreenPath")),"errorScreenshot"));
+            test.log(Status.FAIL, "Error Snapshot : " + test.addScreenCaptureFromBase64String(createFailureScreenShots(testName, utililty.getEnvironmentProperties("app.relativescriptfailureScreenPath")),"errorScreenshot"));
             closeReporting();
             throw e;
             // No need to crash the tests if the screenshot fails
