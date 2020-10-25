@@ -8,12 +8,54 @@
 		<version>2.2.6.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.raptor</groupId>
+	<groupId>com.github.raptor-test</groupId>
 	<artifactId>raptor-test</artifactId>
-	<version>0.0.2-SNAPSHOT</version>
+	<version>1.0.0-SNAPSHOT</version>
 	<name>raptor</name>
 	<description>Project to automate apps with normal and shadow dom</description>
+	<url>https://github.com/raptor-test/raptor</url>
 
+	<!-- License for the project, pick a License from opensource.org -->
+	<licenses>
+		<license>
+			<name>MIT License</name>
+			<url>http://www.opensource.org/licenses/mit-license.php</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<!-- Contact for developers on project -->
+	<developers>
+		<developer>
+			<name>Salman Saifi</name>
+			<email>rahilsalman@gmail.com</email>
+			<!-- Your organization, or Github is fine too -->
+			<organization>Github</organization>
+					<!-- URL for Organization, URL to your github profile work well here -->
+			<organizationUrl>https://github.com/salmanthecoder</organizationUrl>
+		</developer>
+	</developers>
+
+	<!-- Source Control Information, Github Stuff -->
+	<scm>
+		<!-- Should be format scm:git:git or scm:git:https -->
+		<connection>scm:git:https://github.com/raptor-test/raptor.git</connection>
+		<developerConnection>scm:git@github.com:raptor-test/raptor.git</developerConnection>
+		<url>https://github.com/raptor-test/raptor</url>
+		<tag>HEAD</tag>
+	</scm>
+
+	<!-- We are deploying to Sonatype, so enter Sonatype Distribution Stuff Here -->
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
 	<properties>
 		<java.version>1.8</java.version>
 	</properties>

@@ -1,19 +1,22 @@
 package com.raptor;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.jupiter.api.*;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.IOException;
 
 @SpringBootTest
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ApplicationTest extends RaptorBase{
     @BeforeAll
-    public static void beforeClass()  {
+    public void beforeClass()  {
         initiateReporting("Test-Scans");
     }
 
     @AfterAll
-    public static void afterClass()  {
+    public void afterClass()  {
         closeReporting();
     }
 
