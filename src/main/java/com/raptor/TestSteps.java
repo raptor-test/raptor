@@ -208,60 +208,6 @@ public class TestSteps {
 
     }
 
-    public void authorise(JavascriptExecutor js,JSONObject scriptObject) throws InterruptedException, IOException {
-        String timeLapsed = scriptObject.getAsString("time");
-        timeLapsed = timeLapsed !=null ? timeLapsed: defaultTime;
-        String url = utililty.getEnvironmentProperties(scriptObject.getAsString("url"));
-        Long time = Long.parseLong(timeLapsed) != 0 ? Long.parseLong(timeLapsed): 1500;
-        String type = scriptObject.getAsString("type");
-        String locator = utililty.getEnvironmentProperties(scriptObject.getAsString("locator"));
-
-
-        url = "'" + url + "'";
-        String link = "window.open("+url+",'_blank');";
-        js.executeScript(link);
-        Thread.sleep(7000);
-        ArrayList<String> tabs = new ArrayList<String>(browser.getWindowHandles());
-        browser.switchTo().window(tabs.get(1));
-        if(authorise_mobile.equalsIgnoreCase(type)) {
-            String accessProfile = scriptObject.getAsString("value");
-            String mobileInputLocator = utililty.getEnvironmentProperties("mobile.input");
-            String mobileSubmitLocator = utililty.getEnvironmentProperties("mobile.submit");
-            String mobileApproveLocator = utililty.getEnvironmentProperties("mobile.approve");
-            String mobileRejectLocator = utililty.getEnvironmentProperties("mobile.reject");
-            if(accessProfile == null || accessProfile.length() == 0) {
-                accessProfile = profile;
-            }
-            Thread.sleep(time);
-            inputBySendingKeysStep(js, mobileInputLocator, time.toString(), accessProfile, null);
-            clickStep(js,mobileSubmitLocator, time.toString(),null, null, null);
-            scroll(js, "2000", "1000");
-            clickStep(js,mobileApproveLocator, time.toString(),null, null, null);
-            Thread.sleep(time);
-            browser.close();
-            browser.switchTo().window(tabs.get(0));
-            Thread.sleep(time*2);
-        } else {
-            String codeInputAumaLocator = utililty.getEnvironmentProperties("code.input");
-            String codeSubmitLocator= utililty.getEnvironmentProperties("code.submit");
-            String codeValueLocator =  utililty.getEnvironmentProperties("code.codeValue"+type);
-            String codeIdentifier = scriptObject.getAsString("value");
-            if(codeIdentifier == null || codeIdentifier.length() == 0) {
-                codeIdentifier = codeIdentifierId;
-            }
-            Thread.sleep(time);
-            inputStep(js, codeInputAumaLocator, time.toString(), codeIdentifier);
-            clickStep(js,codeSubmitLocator, time.toString(),null, null, null);
-            code = ((WebElement) js.executeScript("return " + codeValueLocator)).getText();
-            Thread.sleep(time);
-            browser.close();
-            browser.switchTo().window(tabs.get(0));
-            Thread.sleep(time*2);
-            inputBySendingKeysStep(js, locator, time.toString(), code, null);
-        }
-
-    }
-
     //execute test based on action
     public void executeTestBasedOnAction(JavascriptExecutor js, WebDriver browser, JSONObject scriptObject, WebDriverWait wait) {
         try{
@@ -295,13 +241,10 @@ public class TestSteps {
                 case "expect":
                     expectStep(js, scriptObject.getAsString("locator"), scriptObject.getAsString("time"), scriptObject.getAsString("expectedText"), wait);
                     break;
-                case "authorise":
-                    authorise(js, scriptObject);
-                    break;
                 default:
                     // code block
             }
-        }catch(InterruptedException | NoSuchFieldException | IOException ex){
+        }catch(InterruptedException | NoSuchFieldException ex){
             //do stuff
         }
     }
